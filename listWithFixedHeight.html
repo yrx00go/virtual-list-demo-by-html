@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>固定高度虚拟列表</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+        }
+
+        .item {
+            background-color: darkgray;
+            width: 100%;
+            border: thick solid darkgreen;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="virtual_list"></div>
+    </div>
+    <script>
+        const container = document.querySelector('.container')
+        const virtualList = document.querySelector('.virtual_list')
+        const dataSource = Array.from({ length: 100 }, (v, i) => i )
+        const ITEM_HEIGTH = 100;
+        const SCROLL_CONTENT_HEIGHT = ITEM_HEIGTH * (dataSource.length); // 滚动区域大小
+        const CONTAINER_HEIGHT = container.clientHeight; //滚动窗口高度;
+        const ITEM_COUNT = Math.ceil(CONTAINER_HEIGHT/ITEM_HEIGTH); // 当前视图show出来的数量
+
+        function showCurrentList(target) {
+            let scrollTop = target.scrollTop; // 当前视图的scrollTop
+            let startIdx = Math.floor(scrollTop / ITEM_HEIGTH);  // 开始值；
+            let endIdx = startIdx + ITEM_COUNT;
+
+            let itemList = '';
+            const paddingTop = startIdx * ITEM_HEIGTH
+
+            virtualList.setAttribute('style', `padding-top:${paddingTop}px;`)
+
+            for (let i = startIdx; i < startIdx + ITEM_COUNT; i++) {
+                const element = dataSource[i];
+                itemList += `<div class="item" style="height:${ITEM_HEIGTH}px">${element}</div>`
+            }
+            // TODO: 此处直接用innerHTML，还可以用Document Fragment；
+            // 同样是避免单次重复渲染的方式；
+            virtualList.innerHTML = itemList;
+        }
+
+        showCurrentList(container)
+        container.addEventListener('scroll', (event) => {
+            showCurrentList(event.target)
+        })
+    </script>
+</body>
+
+</html>

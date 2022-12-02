@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>非固定高度虚拟列表</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+        }
+
+        .item {
+            background-color: darkgray;
+            width: 100%;
+            border: thick solid darkgreen;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="virtual_list"></div>
+    </div>
+    <script>
+        const container = document.querySelector('.container')
+        const virtualList = document.querySelector('.virtual_list')
+        const dataSource = Array.from({ length: 100 }, (v, i) => { return { idx: i, height: Math.floor(Math.random() * (70 - 0) + 40) } })
+        const SCROLL_CONTENT_HEIGHT = getScrollContentHeight(dataSource); // 滚动区域大小
+        const CONTAINER_HEIGHT = container.clientHeight; //滚动窗口高度;
+
+        function getScrollContentHeight(dataSource) {
+            let pre = 0;
+            dataSource.forEach(item => {
+                item.position = pre + item.height;
+                pre = item.position; // 记录当前item的终止位置;
+            });
+            return dataSource[dataSource.length - 1].position;
+        }
+
+        function showCurrentList(target) {
+            let scrollTop = target.scrollTop; // 当前视图的scrollTop
+            // 找到data中的position大于scrollTop的第一个值 -- startIndex;
+            // 找到data中position大于scrollTop + CONTAINER_HEIGHT的第一个值 -- endIndex; 
+            // TODO: 寻找startIdx和endIdx存在优化解法，包括二份，Cache缓存等方式；
+            let itemList = '';
+            let satrt = dataSource.find(e => e.position > scrollTop);
+            virtualList.setAttribute('style', `padding-top:${satrt.position - satrt.height}px;`)
+
+            for (let i = satrt.idx; i < dataSource.length; i++) {
+                const element = dataSource[i];
+                if (element.position > CONTAINER_HEIGHT + scrollTop) break;
+                itemList += `<div class="item" style="height:${element.height}px">${element.idx}</div>`
+            }
+            virtualList.innerHTML = itemList;
+        }
+
+        showCurrentList(container)
+        container.addEventListener('scroll', (event) => {
+            showCurrentList(event.target)
+        })
+    </script>
+</body>
+
+</html>
